@@ -53,7 +53,7 @@ spec:
   capacity:
     storage: 100Gi
   accessModes:
-    - ReadOnlyMany
+    - ReadOnlyOnce
   nfs:
     server: 192.168.100.91
     path: /volume1/NAS/kavita_books
