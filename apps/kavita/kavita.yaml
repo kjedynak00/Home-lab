@@ -4,8 +4,6 @@ kind: Deployment
 metadata:
   name: kavita
 spec:
-  strategy:
-    type: RollingUpdate
   replicas: 1
   selector:
     matchLabels:
@@ -19,6 +17,18 @@ spec:
       - name: kavita
         image: lscr.io/linuxserver/kavita:latest
         imagePullPolicy: Always #autoupdate to latest version
+        readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 20
         resources:
           requests:
             memory: "500Mi"
