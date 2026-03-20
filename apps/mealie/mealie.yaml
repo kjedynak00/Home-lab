@@ -61,6 +61,16 @@ spec:
               value: "1"
             - name: BASE_URL
               value: http://192.168.100.14
+            - name: MEALIE_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mealie-secrets
+                  key: MEALIE_ADMIN_USER
+            - name: MEALIE_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mealie-secrets
+                  key: MEALIE_ADMIN_PASSWORD
           volumeMounts:
             - name: mealie-data
               mountPath: /app/data
