@@ -60,7 +60,7 @@ spec:
           envFrom:
             - secretRef:
                 name: homepage-secrets
-            - SecretRef:
+            - secretRef:
                 name: kavita-secrets
           volumeMounts:
             - name: homepage-config
