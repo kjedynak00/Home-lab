@@ -101,7 +101,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /mnt/NAS/kavita_books   # NAS MNT
+    path: /mnt/NAS/home-lab/data/kavita_books   # NAS MNT
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
