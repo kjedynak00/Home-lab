@@ -44,8 +44,6 @@ spec:
   selector:
     matchLabels:
       app: homepage
-    strategy:
-    type: RollingUpdate
   template:
     metadata:
       labels:

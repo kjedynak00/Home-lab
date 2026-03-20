@@ -19,6 +19,13 @@ spec:
       - name: kavita
         image: lscr.io/linuxserver/kavita:latest
         imagePullPolicy: Always #autoupdate to latest version
+        resources:
+          requests:
+            memory: "500Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "700m"
         ports:
         - containerPort: 5000
         envFrom:
