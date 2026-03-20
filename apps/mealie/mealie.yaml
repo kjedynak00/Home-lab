@@ -46,18 +46,6 @@ spec:
           image: ghcr.io/mealie-recipes/mealie:latest
           ports:
             - containerPort: 9000
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 9000
-            initialDelaySeconds: 70
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 9000
-            initialDelaySeconds: 75
-            periodSeconds: 20
           env:
             - name: ALLOW_SIGNUP
               value: "true"
