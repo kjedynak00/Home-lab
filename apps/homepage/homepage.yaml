@@ -10,10 +10,10 @@ spec:
     storage: 4Gi
   accessModes:
     - ReadWriteOnce
-  storageClassName: manual
-  hostPath:
-    path: /data/homepage/config   
-
+  storageClassName: nfs
+  nfs:
+    server: 192.168.100.91
+    path: /mnt/NAS/home-lab/data/homepage
 ---
 # ---------------------------
 # PersistentVolumeClaim (PVC)
@@ -25,11 +25,11 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: manual
+  storageClassName: nfs
   volumeName: homepage-pv
   resources:
     requests:
-      storage: 4Gi
+      storage: 10Gi
 
 ---
 # ---------------------------
