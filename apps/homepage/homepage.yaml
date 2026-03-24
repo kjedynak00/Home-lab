@@ -24,11 +24,14 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+        env:
+          - name: HOST
+            value: "192.168.100.14"
         ports:
         - name: http
           containerPort: 3000
           protocol: TCP
-        livelessProbe:
+        livenessProbe:
           httpGet:
             path: /api/healthcheck
             port: http
