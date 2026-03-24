@@ -8,7 +8,7 @@ metadata:
 data:
   kubernetes.yaml: |
     mode: cluster
-  settings.yaml:
+  settings.yaml: |
     server:
     allowedHosts:
       - "192.168.100.14"
