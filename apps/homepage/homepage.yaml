@@ -1,46 +1,11 @@
-# ---------------------------
-# PersistentVolume (PV)
-# ---------------------------
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: homepage-pv
-spec:
-  capacity:
-    storage: 4Gi
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: nfs
-  nfs:
-    server: 192.168.100.91
-    path: /mnt/NAS/home-lab/data/homepage
----
-# ---------------------------
-# PersistentVolumeClaim (PVC)
-# ---------------------------
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: homepage-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: nfs
-  volumeName: homepage-pv
-  resources:
-    requests:
-      storage: 10Gi
-
----
-# ---------------------------
-# Deployment Homepage
-# ---------------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: homepage
+  labels:
+    app: homepage
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: homepage
@@ -50,46 +15,39 @@ spec:
         app: homepage
     spec:
       containers:
-        - name: homepage
-          image: ghcr.io/gethomepage/homepage:latest
-          imagePullPolicy: Always #autoupdate to latest version
-          resources:
+      - name: homepage
+        image: gethomepage/homepage:latest
+        resources:
             requests:
               memory: "256Mi"
               cpu: "100m"
             limits:
               memory: "512Mi"
               cpu: "500m"
-          ports:
-            - containerPort: 3000
-          envFrom:
-            - secretRef:
-                name: homepage-secrets
-            - secretRef:
-                name: kavita-secrets
-            - secretRef:
-                name: synology-secrets
-          volumeMounts:
-            - name: homepage-config
-              mountPath: /app/config
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: homepage-config-volume
+          mountPath: /app/config
+          readOnly: true
       volumes:
-        - name: homepage-config
-          persistentVolumeClaim:
-            claimName: homepage-pvc
+      - name: homepage-config-volume
+        configMap:
+          name: homepage-config
+          items:
+            - key: homepage-config.json
+              path: config.json
 
 ---
-# ---------------------------
-# Service to expose Homepage
-# ---------------------------
 apiVersion: v1
 kind: Service
 metadata:
-  name: homepage
+  name: homepage-svc
 spec:
   selector:
     app: homepage
   ports:
-    - port: 3000
-      targetPort: 3000
-      nodePort: 31300
+  - port: 3000
+    targetPort: 3000
+    nodePort: 31300
   type: NodePort
