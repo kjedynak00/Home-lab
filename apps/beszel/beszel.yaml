@@ -50,6 +50,16 @@ spec:
                 fieldPath: status.hostIP
           - name: APP_URL
             value: "http://$(HOST):30900"
+          - name: HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: HEARTBEAT_URL
+            value: "https://hc-ping.com/1c50ee02-df44-40f6-892f-db84d343496f"
+          - name: HEARTBEAT_INTERVAL
+            value: "60"
+          - name: HEARTBEAT_METHOD
+            value: "POST"
         ports:
         - name: http
           containerPort: 8090
