@@ -91,6 +91,11 @@ spec:
 # =========================
 apiVersion: apps/v1
 kind: DaemonSet
+updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 100%
+    type: RollingUpdate
 metadata:
   name: beszel-agent
 spec:
@@ -106,6 +111,8 @@ spec:
       containers:
       - name: beszel-agent
         image: henrygd/beszel-agent:latest
+        imagePullPolicy: Always
+        restartPolicy: Always
         resources:
           requests:
             memory: "64Mi"
@@ -141,3 +148,7 @@ spec:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
           effect: NoSchedule
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Exists
+    
