@@ -18,7 +18,7 @@ metadata:
   name: mariadb
 spec:
   serviceName: mariadb
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: mariadb
@@ -119,6 +119,9 @@ spec:
           volumeMounts:
             - name: wordpress-data
               mountPath: /var/www/html
+            - name: php-config
+              mountPath: /usr/local/etc/php/conf.d/custom.ini
+              subPath: php.ini
           startupProbe:
             tcpSocket:
               port: 80
@@ -130,6 +133,9 @@ spec:
         - name: wordpress-data
           persistentVolumeClaim:
             claimName: wordpress-pvc
+        - name: php-config
+          configMap:
+            name: wordpress-php-config
 
 ---
 apiVersion: apps/v1
@@ -168,6 +174,19 @@ spec:
             timeoutSeconds: 2
             failureThreshold: 24
 
+#ConfigMAP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wordpress-php-config
+data:
+  php.ini: |
+    upload_max_filesize = 128M
+    post_max_size = 128M
+    memory_limit = 256M
+    max_execution_time = 300
+    max_input_time = 300
 
 # Services
 ---
