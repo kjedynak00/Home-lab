@@ -199,7 +199,7 @@ spec:
             failureThreshold: 24
           readinessProbe:
             httpGet:
-              path: /
+              path: /wp-admin/install.php  
               port: 80
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -207,7 +207,7 @@ spec:
             failureThreshold: 6
           livenessProbe:
             httpGet:
-              path: /
+              path: /wp-admin/install.php  
               port: 80
             initialDelaySeconds: 30
             periodSeconds: 20
