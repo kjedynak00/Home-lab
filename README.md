@@ -6,7 +6,7 @@ This repository is my private homelab .yaml storage mostly for argoCD.
 [![GitHub license](https://img.shields.io/github/license/ToxicPL/Home-lab)](https://github.com/ToxicPL/Home-lab/blob/main/LICENSE)
 [![ArgoCD Ready](https://img.shields.io/badge/ArgoCD-Ready-green)](https://argo-cd.readthedocs.io)
 
-## Describtion 
+## Describtion
 Its mostly storage of my .yaml file for various applications that im using daiy.
 List of this apps bellow.
 
@@ -18,7 +18,7 @@ Name | What it is doing | Status |
 | **Mealie** | App for gathering your recipes  | ✅ |
 | **Beszel** | Monitoring Tool  | ✅ |
 | **Homepage** | Basicly a homepage | 🚧 TBD |
-  **Wordpress + mariadb + phpmyadmin** | CMS+DB | 🚧 TBD |
+|  **Wordpress + mariadb + phpmyadmin** | CMS+DB | 🚧 TBD |
 | **Grafana** | Monitoring tool | 🚧 TBD |
 | **N/A** | N/A | ❌  |
 
