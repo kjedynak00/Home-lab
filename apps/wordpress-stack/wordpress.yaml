@@ -227,6 +227,16 @@ spec:
             periodSeconds: 20
             timeoutSeconds: 3
             failureThreshold: 6
+  volumeClaimTemplates:
+    - metadata:
+        name: mariadb-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        storageClassName: longhorn
+        resources:
+          requests:
+            storage: 10Gi
 
 # Services
 ---
