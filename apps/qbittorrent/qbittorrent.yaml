@@ -80,8 +80,8 @@ spec:
     - nfsvers=4.0
     - hard
   nfs:
-    server: 192.168.1.10
-    path: /shares/appdata/qbittorrent/config
+    server: 192.168.100.91
+    path: /volumeUSB2/usbshare
 
 ---
 apiVersion: v1
