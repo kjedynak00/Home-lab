@@ -1,4 +1,4 @@
-# 🏠 Homelab Setup
+`# 🏠 Homelab Setup
 
 This repository is my private homelab .yaml storage mostly for argoCD.
 

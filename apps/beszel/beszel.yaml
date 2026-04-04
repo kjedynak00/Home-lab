@@ -34,46 +34,46 @@ spec:
         app: beszel
     spec:
       containers:
-      - name: beszel
-        image: henrygd/beszel:latest
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        env:
-          - name: HOST
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
-          - name: APP_URL
-            #value: "http://$(HOST):30900"
-            value: "https://beszel.kacperjedynak.pl"
-          - name: HOST
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
-          - name: HEARTBEAT_URL
-            value: "https://hc-ping.com/1c50ee02-df44-40f6-892f-db84d343496f"
-          - name: HEARTBEAT_INTERVAL
-            value: "60"
-          - name: HEARTBEAT_METHOD
-            value: "POST"
-        ports:
-        - name: http
-          containerPort: 8090
-          protocol: TCP
-        livenessProbe:
-          httpGet:
-            path: /
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 15
-        volumeMounts:
-          - mountPath: /beszel_data
-            name: data
+        - name: beszel
+          image: henrygd/beszel:latest
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: APP_URL
+              #value: "http://$(HOST):30900"
+              value: "https://beszel.kacperjedynak.pl"
+            - name: HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: HEARTBEAT_URL
+              value: "https://hc-ping.com/1c50ee02-df44-40f6-892f-db84d343496f"
+            - name: HEARTBEAT_INTERVAL
+              value: "60"
+            - name: HEARTBEAT_METHOD
+              value: "POST"
+          ports:
+            - name: http
+              containerPort: 8090
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          volumeMounts:
+            - mountPath: /beszel_data
+              name: data
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -103,10 +103,10 @@ spec:
 apiVersion: apps/v1
 kind: DaemonSet
 updateStrategy:
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 100%
-    type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 0
+    maxUnavailable: 100%
+  type: RollingUpdate
 metadata:
   name: beszel-agent
 spec:
@@ -120,33 +120,33 @@ spec:
     spec:
       hostNetwork: true
       containers:
-      - name: beszel-agent
-        image: henrygd/beszel-agent:latest
-        imagePullPolicy: Always
-        restartPolicy: Always
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "50m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
-        env:
-          - name: HUB_URL
-            #value: "http://192.168.100.14:30900"
-            value: "https://beszel.kacperjedynak.pl"
-          - name: TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: beszel-secret
-                key: TOKEN
-          - name: KEY 
-            valueFrom:
-              secretKeyRef:
-                name: beszel-secret
-                key: KEY
+        - name: beszel-agent
+          image: henrygd/beszel-agent:latest
+          imagePullPolicy: Always
+          restartPolicy: Always
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          env:
+            - name: HUB_URL
+              #value: "http://192.168.100.14:30900"
+              value: "https://beszel.kacperjedynak.pl"
+            - name: TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: beszel-secret
+                  key: TOKEN
+            - name: KEY
+              valueFrom:
+                secretKeyRef:
+                  name: beszel-secret
+                  key: KEY
       securityContext:
-          privileged: true
+        privileged: true
       volumeMounts:
         - name: proc
           mountPath: /host/proc
@@ -168,4 +168,3 @@ spec:
         - effect: NoSchedule
           key: node-role.kubernetes.io/control-plane
           operator: Exists
-    
