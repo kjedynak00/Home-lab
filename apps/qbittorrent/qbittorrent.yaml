@@ -90,6 +90,7 @@ spec:
       storage: 500Gi
   volumeName: qbittorrent-downloads-pv
 
+
 #Service
 ---
 apiVersion: v1
@@ -104,7 +105,7 @@ spec:
     - name: webui
       port: 8080
       targetPort: 8080
-      nodePort: 8080
+      nodePort: 30000
       protocol: TCP
     - name: bittorrent-tcp
       port: 6881
