@@ -20,14 +20,6 @@ spec:
             httpGet:
               path: /
               port: 8080
-            initialDelaySeconds: 90
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 8080
-            initialDelaySeconds: 70
-            periodSeconds: 20
           resources:
             requests:
               memory: "512Mi"
