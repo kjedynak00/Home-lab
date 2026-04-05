@@ -105,7 +105,7 @@ spec:
     - name: bittorrent-udp
       port: 6881
       targetPort: 30681
-      nodePort: 30681
+      nodePort: 30682
       protocol: UDP
 
 ---
