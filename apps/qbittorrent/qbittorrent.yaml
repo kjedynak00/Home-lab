@@ -134,9 +134,11 @@ spec:
           args:
             - |
               mkdir -p /config/qBittorrent
-              cp /tmp/qbittorrent.conf /config/qBittorrent.conf
-              chown 1000:1000 /config/qBittorrent.conf
-              chmod 644 /config/qBittorrent.conf
+                  if [ ! -f /config/qBittorrent/qBittorrent.conf ]; then
+                    cp /tmp/qbittorrent.conf /config/qBittorrent/qBittorrent.conf
+                    chown -R 1000:1000 /config/qBittorrent
+                    chmod 644 /config/qBittorrent/qBittorrent.conf
+              fi
               rm -f /config/qBittorrent/qBittorrent-data.conf
           volumeMounts:
             - name: config
