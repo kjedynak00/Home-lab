@@ -1,16 +1,15 @@
 ---
-# WAVE -5: ConfigMap
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: qbittorrent-config
+  name: qbittorrent-config-seed
   annotations:
     argocd.argoproj.io/sync-wave: "-5"
 data:
-  qbittorrent.conf: |
+  qBittorrent.conf: |
     [BitTorrent]
     Session\AddTorrentStopped=false
-    Session\Port=6881
+    Session\Port=30000
     Session\QueueingSystemEnabled=true
     Session\SSL\Port=41125
     Session\ShareLimitAction=Stop
@@ -27,86 +26,6 @@ data:
     WebUI\HostHeaderValidation=false
     WebUI\TrustedInterfaces=0.0.0.0/0
     WebUI\Port=8080
----
-# WAVE -5: Storage (PVC/PV)
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: qbittorrent-config-pvc
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: longhorn
-  resources:
-    requests:
-      storage: 5Gi
-
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: qbittorrent-downloads-pv
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
-spec:
-  capacity:
-    storage: 500Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  mountOptions:
-    - nfsvers=4.0
-    - hard
-  nfs:
-    server: 192.168.100.91
-    path: /volumeUSB2/usbshare
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: qbittorrent-downloads-pvc
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
-    volume.beta.kubernetes.io/storage-class: ""
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 500Gi
-  volumeName: qbittorrent-downloads-pv
-
----
-# WAVE 5: Deployment + Service
-apiVersion: v1
-kind: Service
-metadata:
-  name: qbittorrent
-  annotations:
-    argocd.argoproj.io/sync-wave: "5"
-spec:
-  type: NodePort
-  selector:
-    app: qbittorrent
-  ports:
-    - name: webui
-      port: 8080
-      targetPort: 8080
-      nodePort: 30000
-      protocol: TCP
-    - name: bittorrent-tcp
-      port: 6881
-      targetPort: 6881
-      nodePort: 30681
-      protocol: TCP
-    - name: bittorrent-udp
-      port: 6881
-      targetPort: 6881
-      nodePort: 30682
-      protocol: UDP
 
 ---
 apiVersion: apps/v1
@@ -133,35 +52,26 @@ spec:
           command: ["sh", "-c"]
           args:
             - |
+              set -eu
               mkdir -p /config/qBittorrent
               if [ ! -f /config/qBittorrent/qBittorrent.conf ]; then
-                cp /tmp/qbittorrent.conf /config/qBittorrent/qBittorrent.conf
-                chown -R 1000:1000 /config/qBittorrent
-                chmod 644 /config/qBittorrent/qBittorrent.conf
+                cp /seed/qBittorrent.conf /config/qBittorrent/qBittorrent.conf
               fi
+              sed -i '/^WebUI\\Password/d' /config/qBittorrent/qBittorrent.conf || true
+              sed -i '/^WebUI\\Username/d' /config/qBittorrent/qBittorrent.conf || true
+              chown -R 1000:1000 /config
+              chmod 664 /config/qBittorrent/qBittorrent.conf || true
               rm -f /config/qBittorrent/qBittorrent-data.conf
+              rm -f /config/qBittorrent/lockfile
           volumeMounts:
             - name: config
               mountPath: /config
-            - name: qbittorrent-config
-              mountPath: /tmp
+            - name: config-seed
+              mountPath: /seed
       containers:
         - name: qbittorrent
           image: lscr.io/linuxserver/qbittorrent:latest
           imagePullPolicy: Always
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "100m"
-            limits:
-              memory: "2Gi"
-              cpu: "700m"
-          ports:
-            - containerPort: 8080
-            - containerPort: 6881
-              protocol: TCP
-            - containerPort: 6881
-              protocol: UDP
           env:
             - name: PUID
               value: "1000"
@@ -172,11 +82,15 @@ spec:
             - name: WEBUI_PORT
               value: "8080"
             - name: TORRENTING_PORT
-              value: "6881"
+              value: "30000"
             - name: UMASK
               value: "002"
-            - name: CONFIG_DIR
-              value: "/config/qBittorrent"
+          ports:
+            - containerPort: 8080
+            - containerPort: 30000
+              protocol: TCP
+            - containerPort: 30000
+              protocol: UDP
           volumeMounts:
             - name: config
               mountPath: /config
@@ -189,10 +103,35 @@ spec:
         - name: downloads
           persistentVolumeClaim:
             claimName: qbittorrent-downloads-pvc
-        - name: qbittorrent-config
+        - name: config-seed
           configMap:
-            name: qbittorrent-config
+            name: qbittorrent-config-seed
             defaultMode: 0644
-            items:
-              - key: qbittorrent.conf
-                path: qbittorrent.conf
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  type: NodePort
+  selector:
+    app: qbittorrent
+  ports:
+    - name: webui
+      port: 8080
+      targetPort: 8080
+      nodePort: 30000
+      protocol: TCP
+    - name: bittorrent-tcp
+      port: 30000
+      targetPort: 30000
+      nodePort: 30681
+      protocol: TCP
+    - name: bittorrent-udp
+      port: 30000
+      targetPort: 30000
+      nodePort: 30682
+      protocol: UDP
