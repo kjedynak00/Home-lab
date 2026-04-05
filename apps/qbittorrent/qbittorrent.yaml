@@ -10,9 +10,9 @@ data:
   qbittorrent.conf: |
     [BitTorrent]
     Session\AddTorrentStopped=false
-    Session\Port=6881
+    Session\Port=44344
     Session\QueueingSystemEnabled=true
-    Session\SSL\Port=41125
+    Session\SSL\Port=44344
     Session\ShareLimitAction=Stop
     [Meta]
     MigrationVersion=8
@@ -100,12 +100,12 @@ spec:
     - name: bittorrent-tcp
       port: 6881
       targetPort: 6881
-      nodePort: 30681
+      nodePort: 44344
       protocol: TCP
     - name: bittorrent-udp
       port: 6881
       targetPort: 6881
-      nodePort: 30682
+      nodePort: 44344
       protocol: UDP
 
 ---
@@ -172,7 +172,7 @@ spec:
             - name: WEBUI_PORT
               value: "8080"
             - name: TORRENTING_PORT
-              value: "6881"
+              value: "44344"
             - name: UMASK
               value: "002"
             - name: CONFIG_DIR
