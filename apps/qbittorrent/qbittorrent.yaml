@@ -14,23 +14,19 @@ data:
     Session\QueueingSystemEnabled=true
     Session\SSL\Port=41125
     Session\ShareLimitAction=Stop
-
     [Meta]
     MigrationVersion=8
-
     [Network]
     Proxy\HostnameLookupEnabled=false
     Proxy\Profiles\BitTorrent=true
     Proxy\Profiles\Misc=true
     Proxy\Profiles\RSS=true
-
     [Preferences]
     WebUI\BypassAuthentication=true
     WebUI\CSRFProtection=false
     WebUI\HostHeaderValidation=false
     WebUI\TrustedInterfaces=0.0.0.0/0
     WebUI\Port=8080
-
 ---
 # WAVE -5: Storage (PVC/PV)
 apiVersion: v1
@@ -137,12 +133,11 @@ spec:
           command: ["sh", "-c"]
           args:
             - |
-              echo "Injecting qBittorrent config..."
               mkdir -p /config/qBittorrent
-              cp /tmp/qbittorrent.conf /config/qBittorrent/qBittorrent.conf
-              chown 1000:1000 /config/qBittorrent /config/qBittorrent/qBittorrent.conf
-              chmod 644 /config/qBittorrent/qBittorrent.conf
-              echo "Config injected successfully"
+              cp /tmp/qbittorrent.conf /config/qBittorrent.conf
+              chown 1000:1000 /config/qBittorrent.conf
+              chmod 644 /config/qBittorrent.conf
+              rm -f /config/qBittorrent/qBittorrent-data.conf
           volumeMounts:
             - name: config
               mountPath: /config
