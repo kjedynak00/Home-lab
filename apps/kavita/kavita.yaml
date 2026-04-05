@@ -85,18 +85,6 @@ spec:
       storage: 2Gi
 ---
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: kavita-data-pv
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: longhorn
-  resources:
-    requests:
-      storage: 5Gi
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: kavita-data-pvc
