@@ -28,15 +28,19 @@ spec:
           image: ollama/ollama:latest
           ports:
             - containerPort: 11434
-
           env:
             - name: OLLAMA_HOST
               value: "0.0.0.0:11434"
-
           volumeMounts:
             - name: ollama-data
               mountPath: /root/.ollama
-
+          resources:
+            requests:
+              cpu: "1"
+              memory: "4Gi"
+            limits:
+              cpu: "2"
+              memory: "8Gi"
       volumes:
         - name: ollama-data
           persistentVolumeClaim:
@@ -72,16 +76,19 @@ spec:
           image: ghcr.io/open-webui/open-webui:main
           ports:
             - containerPort: 8080
-
           env:
-            # 👇 WAŻNE: komunikacja z Ollama w klastrze
             - name: OLLAMA_BASE_URL
               value: "http://ollama:11434"
-
           volumeMounts:
             - name: data
               mountPath: /app/backend/data
-
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
       volumes:
         - name: data
           emptyDir: {}
