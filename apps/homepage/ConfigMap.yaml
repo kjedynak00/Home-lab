@@ -32,7 +32,8 @@ data:
             href: http://localhost/
             description: Homepage is 😎
         - TEST SERVICE
-            describtion: TEST
+            description: TEST
+            href: http://localhost/
 
   widgets.yaml: |
     - kubernetes:
