@@ -17,15 +17,37 @@ data:
             - abbr: GH
               href: https://github.com/kjedynak00
   services.yaml: |
-    - My First Group:
-        - My First Service:
-            href: http://localhost/
-            description: Homepage is awesomeSSSS
+    - Applications:
+        - OpenWebUI:
+            icon: open-webui.png
+            href: https://ai.kacperjedynak.pl/
+            description: My Priv AI
+        - Kavita:
+            icon: kavita.png
+            href: https://kavita.kacperjedynak.pl/
+            description: My Books
+        - BentoPDF:
+            icon: bentopdf.png
+            href: https://pdf.kacperjedynak.pl/
+            description: My PDF editor
+        - Mealie:
+            icon: mealie.png
+            href: https://meal.kacperjedynak.pl/
+            description: My Recipe Manager
 
-    - My Second Group:
-        - My Second Service:
-            href: http://localhost/
-            description: Homepage is the best
+    - Lab Management:
+        - Proxmox:
+            icon: proxmox.png
+            href: https://proxmox.kacperjedynak.pl/
+            description: Manage your VMs and containers.
+        - Beszel:
+            icon: beszel.png
+            href: https://beszel.kacperjedynak.pl/
+            description: Monitor your cluster and resources.
+        - ProxMenux:
+            icon: proxmenux.png
+            href: https://proxmenux.kacperjedynak.pl/
+            description: Manage your Proxmox cluster with ease.
 
     - My Third Group:
         - My Third Service:
