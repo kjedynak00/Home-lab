@@ -20,6 +20,7 @@ Name | What it is doing | Status |
 | **Homepage** | Basicly a homepage | 🚧 TBD |
 |  **Wordpress + mariadb + phpmyadmin** | CMS+DB | 🚧 TBD |
 | **Grafana** | Monitoring tool | 🚧 TBD |
+| **Ollama + open web UI** | AI and web ui for it | ✅ |
 | **N/A** | N/A | ❌  |
 
 ## Specs of the homelab
