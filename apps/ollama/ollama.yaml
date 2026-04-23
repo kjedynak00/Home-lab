@@ -64,7 +64,7 @@ metadata:
   name: ollama
 spec:
   type: NodePort
-  externalTrafficPolicy: Local
+  externalTrafficPolicy: Cluster
   selector:
     app: ollama
   ports:
@@ -115,7 +115,7 @@ metadata:
   name: open-webui
 spec:
   type: NodePort
-  externalTrafficPolicy: Local
+  externalTrafficPolicy: Cluster
   selector:
     app: open-webui
   ports:
