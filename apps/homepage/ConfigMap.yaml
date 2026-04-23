@@ -9,14 +9,13 @@ data:
   kubernetes.yaml: |
     mode: cluster
   settings.yaml: ""
-  
   custom.css: ""
   custom.js: ""
   bookmarks.yaml: |
     - Developer:
         - Github:
             - abbr: GH
-              href: https://github.com/ToxicPL
+              href: https://github.com/kjedynak00
   services.yaml: |
     - My First Group:
         - My First Service:
@@ -29,6 +28,11 @@ data:
             description: Homepage is the best
 
     - My Third Group:
+        - My Third Service:
+            href: http://localhost/
+            description: Homepage is 😎
+
+    - My TEST Group:
         - My Third Service:
             href: http://localhost/
             description: Homepage is 😎
