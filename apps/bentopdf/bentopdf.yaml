@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment  
+metadata:
+  name: bentopdf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bentopdf
+  template:
+    metadata:
+      labels:
+        app: bentopdf
+    spec:
+      containers:
+      - name: bentopdf
+        image: ghcr.io/alam00000/bentopdf:latest
+        ports:
+        - containerPort: 80
+        resources:  # opcjonalnie
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bentopdf
+spec:
+  type: NodePort
+  selector:
+    app: bentopdf
+  ports:
+  - port: 80
+    nodePort: 30999 
