@@ -197,5 +197,5 @@ spec:
     app: n8n
   ports:
     - port: 5678
-      nodePort: 5678
+      nodePort: 30924
   type: NodePort
