@@ -33,7 +33,7 @@ kind: Deployment
 metadata:
   name: vaultwarden
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: Recreate
   selector:
