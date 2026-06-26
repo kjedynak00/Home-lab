@@ -7,6 +7,7 @@ spec:
     storage: 5Gi
   accessModes:
     - ReadWriteOnce
+  storageClassName: "" 
   hostPath:
     path: /mnt/NAS/home-lab/data/vaultwarden
   persistentVolumeReclaimPolicy: Retain
@@ -20,6 +21,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   volumeName: vaultwarden-pv
+  storageClassName: "" 
   resources:
     requests:
       storage: 5Gi
