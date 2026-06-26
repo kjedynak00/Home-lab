@@ -21,7 +21,6 @@ spec:
     requests:
       storage: 10Gi
 
-# Deployment for PostgreSQL
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -59,6 +58,8 @@ spec:
                 secretKeyRef:
                   name: n8n-secrets
                   key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: n8n-postgres-data
               mountPath: /var/lib/postgresql/data
@@ -67,7 +68,6 @@ spec:
           persistentVolumeClaim:
             claimName: n8n-postgres-pvc
 
-# Service for PostgreSQL
 ---
 apiVersion: v1
 kind: Service
@@ -81,7 +81,6 @@ spec:
       targetPort: 5432
   type: ClusterIP
 
-# Deployment for n8n
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -97,6 +96,18 @@ spec:
       labels:
         app: n8n
     spec:
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command:
+            - sh
+            - -c
+            - chown -R 1000:1000 /home/node/.n8n
+          volumeMounts:
+            - name: n8n-data
+              mountPath: /home/node/.n8n
       containers:
         - name: n8n
           image: docker.n8n.io/n8nio/n8n:latest
@@ -108,7 +119,6 @@ spec:
               value: Europe/Warsaw
             - name: GENERIC_TIMEZONE
               value: Europe/Warsaw
-
             - name: N8N_HOST
               value: n8n.kacperjedynak.pl
             - name: N8N_PORT
@@ -119,7 +129,6 @@ spec:
               value: https://n8n.kacperjedynak.pl/
             - name: N8N_EDITOR_BASE_URL
               value: https://n8n.kacperjedynak.pl/
-
             - name: DB_TYPE
               value: postgresdb
             - name: DB_POSTGRESDB_HOST
@@ -146,7 +155,6 @@ spec:
                 secretKeyRef:
                   name: n8n-secrets
                   key: N8N_ENCRYPTION_KEY
-
             - name: EXECUTIONS_DATA_PRUNE
               value: "true"
             - name: EXECUTIONS_DATA_MAX_AGE
@@ -155,7 +163,6 @@ spec:
               value: "false"
             - name: N8N_PERSONALIZATION_ENABLED
               value: "false"
-
           livenessProbe:
             httpGet:
               path: /healthz
@@ -164,7 +171,6 @@ spec:
             periodSeconds: 30
             timeoutSeconds: 5
             failureThreshold: 3
-
           readinessProbe:
             httpGet:
               path: /healthz
@@ -173,17 +179,14 @@ spec:
             periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 6
-
           volumeMounts:
             - name: n8n-data
               mountPath: /home/node/.n8n
-
       volumes:
         - name: n8n-data
           persistentVolumeClaim:
             claimName: n8n-pvc
 
-# Service for n8n
 ---
 apiVersion: v1
 kind: Service
