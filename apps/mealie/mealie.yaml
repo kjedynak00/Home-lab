@@ -44,6 +44,7 @@ spec:
       containers:
         - name: mealie
           image: ghcr.io/mealie-recipes/mealie:latest
+          imagePullPolicy: Always #autoupdate to latest version
           ports:
             - containerPort: 9000
           env:

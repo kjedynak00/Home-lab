@@ -1,35 +1,34 @@
-`# 🏠 Homelab Setup
+# 🏠 Homelab Setup
 
-This repository is my private homelab .yaml storage mostly for argoCD.
+Production Kubernetes homelab powered by ArgoCD – YAML manifests for daily apps + monitoring stack
 
 [![GitHub stars](https://img.shields.io/github/stars/ToxicPL/Home-lab?style=social)](https://github.com/ToxicPL/Home-lab)
-[![GitHub license](https://img.shields.io/github/license/ToxicPL/Home-lab)](https://github.com/ToxicPL/Home-lab/blob/main/LICENSE)
 [![ArgoCD Ready](https://img.shields.io/badge/ArgoCD-Ready-green)](https://argo-cd.readthedocs.io)
 
-## Describtion
-Its mostly storage of my .yaml file for various applications that im using daiy.
-List of this apps bellow.
+# 🚀 Describtion
+Personal homelab infrastructure with Proxmox + Kubernetes + ArgoCD GitOps. Daily apps + monitoring stack with Grafana/Prometheus/Beszel.
 
-## App list
+# ✨ App Dashboard
 
 Name | What it is doing | Status |
 | :--- | :--- | :--- |
-| **Kavita** | Library of books etc. | ✅ |
-| **Mealie** | App for gathering your recipes  | ✅ |
-| **Beszel** | Monitoring Tool  | ✅ |
-| **Homepage** | Basicly a homepage | 🚧 TBD |
-|  **Wordpress + mariadb + phpmyadmin** | CMS+DB | 🚧 TBD |
-| **Grafana** | Monitoring tool | 🚧 TBD |
-| **Ollama + open web UI** | AI and web ui for it | ✅ |
-| **N/A** | N/A | ❌  |
+| **Kavita** | Library of books etc. | 🟢 Production |
+| **Mealie** | App for gathering your recipes  | 🟢 Production |
+| **Beszel** | Monitoring Tool  | 🟢 Production |
+| **Homepage** | Basicly a homepage | 🟡 In Progress |
+|  **Wordpress + mariadb + phpmyadmin** | CMS+DB | 🟢 Production |
+| **Grafana** | Monitoring tool | 🟡 In Progress |
+| **Ollama + open web UI** | AI and web ui for it | 🟢 Production |
 
-## Specs of the homelab
- - Main Server: Fujitsu Esprimo Q957
- - Worker Node: Fujitsu Esprimo Q957
+# 🛠️ Infrastructure Specs
+Role | Hardware | Specs |
+| :--- | :--- | :--- |
+| **Main Server** | Fujitsu Esprimo Q957 | Proxmox + K8s Master Server |
+| **Worker Node** | Fujitsu Esprimo Q957 | K8s Worker |
+| **Storage NAS** | Synology 213J | Nas storage |
 
-
-## 👋Contact 
+# 👋Contact 
 
  - Author: Kacper Jedynak
  - E-mail: [kacperjedynak00@gmail.com](mailto:kacperjedynak00@gmail.com)
- - [My Linkedin](https://www.linkedin.com/in/kacper-jedynak/)
+ - Linkedin: [My Profile](https://www.linkedin.com/in/kacper-jedynak/)
