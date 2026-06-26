@@ -16,12 +16,11 @@ data:
         - Github:
             - abbr: GH
               href: https://github.com/kjedynak00
+        - Linkedin:
+            - abbr: LI
+              href: https://www.linkedin.com/in/kacper-jedynak/
   services.yaml: |
     - Applications:
-        - OpenWebUI:
-            icon: open-webui.png
-            href: https://ai.kacperjedynak.pl/
-            description: My Priv AI
         - Kavita:
             icon: kavita.png
             href: https://kavita.kacperjedynak.pl/
@@ -36,6 +35,10 @@ data:
             description: My Recipe Manager
 
     - Lab Management:
+        - N8N:
+            icon: n8n.png
+            href: https://n8n.kacperjedynak.pl/
+            description: My Workflow Automation
         - Proxmox:
             icon: proxmox.png
             href: https://proxmox.kacperjedynak.pl/
