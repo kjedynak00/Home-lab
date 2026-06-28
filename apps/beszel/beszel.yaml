@@ -138,6 +138,13 @@ spec:
                 secretKeyRef:
                   name: beszel-secret
                   key: KEY
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
       securityContext:
         privileged: true
       volumes:
@@ -147,13 +154,6 @@ spec:
         - name: sys
           hostPath:
             path: /sys
-      volumeMounts:
-        - name: proc
-          mountPath: /host/proc
-          readOnly: true
-        - name: sys
-          mountPath: /host/sys
-          readOnly: true
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
