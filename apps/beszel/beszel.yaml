@@ -49,12 +49,7 @@ spec:
                 fieldRef:
                   fieldPath: status.hostIP
             - name: APP_URL
-              #value: "http://$(HOST):30900"
               value: "https://beszel.kacperjedynak.pl"
-            - name: HOST
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
             - name: HEARTBEAT_URL
               value: "https://hc-ping.com/1c50ee02-df44-40f6-892f-db84d343496f"
             - name: HEARTBEAT_INTERVAL
@@ -102,14 +97,14 @@ spec:
 # =========================
 apiVersion: apps/v1
 kind: DaemonSet
-updateStrategy:
-  rollingUpdate:
-    maxSurge: 0
-    maxUnavailable: 100%
-  type: RollingUpdate
 metadata:
   name: beszel-agent
 spec:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 100%
   selector:
     matchLabels:
       app: beszel-agent
@@ -123,7 +118,6 @@ spec:
         - name: beszel-agent
           image: henrygd/beszel-agent:latest
           imagePullPolicy: Always
-          restartPolicy: Always
           resources:
             requests:
               memory: "64Mi"
@@ -133,7 +127,6 @@ spec:
               cpu: "200m"
           env:
             - name: HUB_URL
-              #value: "http://192.168.100.14:30900"
               value: "https://beszel.kacperjedynak.pl"
             - name: TOKEN
               valueFrom:
@@ -147,13 +140,6 @@ spec:
                   key: KEY
       securityContext:
         privileged: true
-      volumeMounts:
-        - name: proc
-          mountPath: /host/proc
-          readOnly: true
-        - name: sys
-          mountPath: /host/sys
-          readOnly: true
       volumes:
         - name: proc
           hostPath:
@@ -161,10 +147,14 @@ spec:
         - name: sys
           hostPath:
             path: /sys
+      volumeMounts:
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
           effect: NoSchedule
-        - effect: NoSchedule
-          key: node-role.kubernetes.io/control-plane
-          operator: Exists
