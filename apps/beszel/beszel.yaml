@@ -118,6 +118,8 @@ spec:
         - name: beszel-agent
           image: henrygd/beszel-agent:latest
           imagePullPolicy: Always
+          securityContext:
+            privileged: true
           resources:
             requests:
               memory: "64Mi"
@@ -145,8 +147,6 @@ spec:
             - name: sys
               mountPath: /host/sys
               readOnly: true
-      securityContext:
-        privileged: true
       volumes:
         - name: proc
           hostPath:
