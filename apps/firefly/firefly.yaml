@@ -81,6 +81,9 @@ spec:
                   name: firefly-secret
                   key: DB_PASSWORD
 
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
+
             - name: TZ
               value: "Europe/Warsaw"
 
