@@ -25,11 +25,12 @@ Name | What it is doing | Status |
 | **Mealie** | Recipe management application   | 🟢 Production |
 | **Beszel** | Lightweight monitoring tool  | 🟢 Production |
 | **Homepage** | Dashboard / landing page  | 🟡 In Progress |
-|  **Wordpress + mariadb + phpmyadmin** | CMS with database stack  | 🟢 Production |
-| **Ollama + open web UI** | Local AI stack with web interface    | 🟢 Production |
+|  **Wordpress + mariadb + phpmyadmin** | CMS with database stack  | ⚪ Inactive |
+| **Ollama + open web UI** | Local AI stack with web interface    | ⚪ Inactive |
 | **n8n** | Workflow automation / low-code pipelines | 🟢 Production |
 | **Vaultwarden** | Lightweight password manager (Bitwarden server) | 🟢 Production |
-| **Roampage** | Dashboard / landing page with health checks and service management | Planned |
+| **Roampage** | Dashboard / landing page with health checks and service management | 🟢 Production |
+| **Firefly** | Self-hosted personal finance and budgeting manager | 🟢 Production |
 
 ---
 ## 🛠️ Infrastructure Specs
