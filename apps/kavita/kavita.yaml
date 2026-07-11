@@ -54,18 +54,6 @@ spec:
             - name: books
               mountPath: /books
               readOnly: true
-      livenessProbe:
-        httpGet:
-          path: /health
-          port: 5000
-        initialDelaySeconds: 30
-        periodSeconds: 15
-      readinessProbe:
-        httpGet:
-          path: /health
-          port: 5000
-        initialDelaySeconds: 15
-        periodSeconds: 10
       volumes:
         - name: config
           persistentVolumeClaim:
