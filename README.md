@@ -27,8 +27,9 @@ Name | What it is doing | Status |
 | **Homepage** | Dashboard / landing page  | 🟡 In Progress |
 |  **Wordpress + mariadb + phpmyadmin** | CMS with database stack  | 🟢 Production |
 | **Ollama + open web UI** | Local AI stack with web interface    | 🟢 Production |
-| **n8n** | orkflow automation / low-code pipelines | 🟢 Production |
-| **VaultwardenI** | ightweight password manager (Bitwarden server) | Planned |
+| **n8n** | Workflow automation / low-code pipelines | 🟢 Production |
+| **Vaultwarden** | Lightweight password manager (Bitwarden server) | 🟢 Production |
+| **Roampage** | Dashboard / landing page with health checks and service management | Planned |
 
 ---
 ## 🛠️ Infrastructure Specs
