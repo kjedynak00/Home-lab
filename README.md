@@ -24,7 +24,7 @@ Name | What it is doing | Status |
 | **Kavita** | Self-hosted digital library | 🟢 Production |
 | **Mealie** | Recipe management application   | 🟢 Production |
 | **Beszel** | Lightweight monitoring tool  | 🟢 Production |
-| **Homepage** | Dashboard / landing page  | 🟡 In Progress |
+| **Homepage** | Dashboard / landing page  | ⚪ Inactive |
 |  **Wordpress + mariadb + phpmyadmin** | CMS with database stack  | ⚪ Inactive |
 | **Ollama + open web UI** | Local AI stack with web interface    | ⚪ Inactive |
 | **n8n** | Workflow automation / low-code pipelines | 🟢 Production |
