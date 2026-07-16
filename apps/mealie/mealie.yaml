@@ -49,7 +49,7 @@ spec:
             - containerPort: 9000
           env:
             - name: ALLOW_SIGNUP
-              value: "true"
+              value: "false"
             - name: PUID
               value: "1000"
             - name: PGID
