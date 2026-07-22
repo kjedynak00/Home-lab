@@ -155,13 +155,14 @@ kind: Service
 metadata:
   name: adguard-web
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: adguard
   ports:
     - name: http
       port: 80
       targetPort: 80
+      nodePort: 30080
       protocol: TCP
 
 # =========================
@@ -174,11 +175,12 @@ kind: Service
 metadata:
   name: adguard-setup
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: adguard
   ports:
     - name: setup
       port: 3000
       targetPort: 3000
+      nodePort: 30300
       protocol: TCP
