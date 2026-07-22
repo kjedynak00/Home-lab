@@ -1,0 +1,157 @@
+# =========================
+# PVC
+# =========================
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: adguard-work-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: adguard-config-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+
+# =========================
+# Deployment
+# =========================
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adguard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adguard
+  template:
+    metadata:
+      labels:
+        app: adguard
+    spec:
+      containers:
+        - name: adguard
+          image: adguard/adguardhome:latest
+          imagePullPolicy: Always
+
+          ports:
+            - name: dns-tcp
+              containerPort: 53
+              protocol: TCP
+
+            - name: dns-udp
+              containerPort: 53
+              protocol: UDP
+
+            - name: http
+              containerPort: 80
+              protocol: TCP
+
+            - name: setup
+              containerPort: 3000
+              protocol: TCP
+
+          volumeMounts:
+            - name: work-data
+              mountPath: /opt/adguardhome/work
+
+            - name: config-data
+              mountPath: /opt/adguardhome/conf
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+      volumes:
+        - name: work-data
+          persistentVolumeClaim:
+            claimName: adguard-work-data
+
+        - name: config-data
+          persistentVolumeClaim:
+            claimName: adguard-config-data
+
+# =========================
+# DNS Service
+# =========================
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard-dns
+spec:
+  type: NodePort
+  selector:
+    app: adguard
+  ports:
+    - name: dns-tcp
+      port: 53
+      targetPort: 53
+      nodePort: 30053
+      protocol: TCP
+
+    - name: dns-udp
+      port: 53
+      targetPort: 53
+      nodePort: 30053
+      protocol: UDP
+
+# =========================
+# Web Service
+# =========================
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard-web
+spec:
+  type: ClusterIP
+  selector:
+    app: adguard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+
+# =========================
+# Setup Service
+# =========================
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard-setup
+spec:
+  type: ClusterIP
+  selector:
+    app: adguard
+  ports:
+    - name: setup
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
