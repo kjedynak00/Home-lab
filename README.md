@@ -31,7 +31,7 @@ Name | What it is doing | Status |
 | **Vaultwarden** | Lightweight password manager (Bitwarden server) | 🟢 Production |
 | **Roampage** | Dashboard / landing page with health checks and service management | 🟢 Production |
 | **Firefly** | Self-hosted personal finance and budgeting manager | 🟢 Production |
-| **Adguard** | Network-wide ad and tracker blocking with DNS-level protection | 🟢 Production |
+| **Adguard** | Network-wide ad and tracker blocking with DNS-level protection | ⚪ Testing |
 
 ---
 ## 🛠️ Infrastructure Specs
