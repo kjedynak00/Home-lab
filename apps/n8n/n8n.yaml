@@ -1,3 +1,6 @@
+# =========================
+# PVC - n8n
+# =========================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -10,6 +13,9 @@ spec:
       storage: 5Gi
 
 ---
+# =========================
+# PVC - PostgreSQL
+# =========================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -22,6 +28,9 @@ spec:
       storage: 10Gi
 
 ---
+# =========================
+# DEPLOYMENT - PostgreSQL
+# =========================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -36,6 +45,8 @@ spec:
       labels:
         app: n8n-postgres
     spec:
+      securityContext:
+        fsGroup: 999
       containers:
         - name: postgres
           securityContext:
@@ -44,6 +55,7 @@ spec:
             runAsGroup: 999
             capabilities:
               drop: ["ALL"]
+              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETUID", "SETGID"]
             allowPrivilegeEscalation: false
           image: postgres:16-alpine
           imagePullPolicy: IfNotPresent
@@ -76,6 +88,9 @@ spec:
             claimName: n8n-postgres-pvc
 
 ---
+# =========================
+# SERVICE - PostgreSQL
+# =========================
 apiVersion: v1
 kind: Service
 metadata:
@@ -89,6 +104,9 @@ spec:
   type: ClusterIP
 
 ---
+# =========================
+# DEPLOYMENT - n8n
+# =========================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -204,6 +222,9 @@ spec:
             claimName: n8n-pvc
 
 ---
+# =========================
+# SERVICE - n8n
+# =========================
 apiVersion: v1
 kind: Service
 metadata:
