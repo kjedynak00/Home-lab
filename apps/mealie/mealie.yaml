@@ -43,7 +43,7 @@ spec:
               drop: ["ALL"]
             allowPrivilegeEscalation: false
           image: ghcr.io/mealie-recipes/mealie:latest
-          imagePullPolicy: Always
+          #imagePullPolicy: Always
           ports:
             - containerPort: 9000
           env:

@@ -211,7 +211,7 @@ spec:
       containers:
         - name: firefly
           image: fireflyiii/core
-          imagePullPolicy: Always
+          #imagePullPolicy: Always
 
           resources:
             requests:
