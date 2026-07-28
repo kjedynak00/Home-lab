@@ -1,3 +1,6 @@
+# =========================
+# PVC
+# =========================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -10,7 +13,9 @@ spec:
     requests:
       storage: 5Gi
 
-# Deployment for Mealie
+# =========================
+# DEPLOYMENT
+# =========================
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -26,10 +31,19 @@ spec:
       labels:
         app: mealie
     spec:
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: mealie
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
           image: ghcr.io/mealie-recipes/mealie:latest
-          imagePullPolicy: Always #autoupdate to latest version
+          imagePullPolicy: Always
           ports:
             - containerPort: 9000
           env:
@@ -71,6 +85,13 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             successThreshold: 1
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
           volumeMounts:
             - name: mealie-data
               mountPath: /app/data
@@ -79,7 +100,9 @@ spec:
           persistentVolumeClaim:
             claimName: mealie-pvc-longhorn
 
-# Service to expose Mealie
+# =========================
+# SERVICE
+# =========================
 ---
 apiVersion: v1
 kind: Service
