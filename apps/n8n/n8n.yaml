@@ -47,6 +47,18 @@ spec:
     spec:
       securityContext:
         fsGroup: 999
+      initContainers:
+        - name: fix-permissions
+          securityContext:
+            runAsUser: 0
+          image: busybox
+          command:
+            - sh
+            - -c
+            - chown -R 999:999 /var/lib/postgresql/data
+          volumeMounts:
+            - name: n8n-postgres-data
+              mountPath: /var/lib/postgresql/data
       containers:
         - name: postgres
           securityContext:
