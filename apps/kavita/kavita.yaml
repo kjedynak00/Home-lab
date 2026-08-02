@@ -1,4 +1,6 @@
----
+# =========================
+# DEPLOYMENT - kavita
+# =========================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -64,7 +66,11 @@ spec:
         - name: books
           persistentVolumeClaim:
             claimName: kavita-books-pvc-2
+
 ---
+# =========================
+# PV - config
+# =========================
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -76,7 +82,11 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: /data/kavita/config
+
 ---
+# =========================
+# PVC - config
+# =========================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -88,7 +98,11 @@ spec:
   resources:
     requests:
       storage: 2Gi
+
 ---
+# =========================
+# PVC - data
+# =========================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -99,7 +113,11 @@ spec:
   resources:
     requests:
       storage: 5Gi
+
 ---
+# =========================
+# PV - books
+# =========================
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -111,7 +129,11 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: /mnt/NAS/home-lab/data/kavita_books # NAS MNT
+
 ---
+# =========================
+# PVC - books
+# =========================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -126,15 +148,39 @@ spec:
       storage: 100Gi
 
 ---
+# =========================
+# SERVICE - kavita
+# =========================
 apiVersion: v1
 kind: Service
 metadata:
   name: kavita
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: kavita
   ports:
     - port: 5000
       targetPort: 5000
-      nodePort: 30500
+
+---
+# =========================
+# INGRESS - kavita
+# =========================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kavita
+  namespace: default
+spec:
+  rules:
+  - host: kavita.kacperjedynak.pl
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kavita
+            port:
+              number: 5000
