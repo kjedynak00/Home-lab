@@ -13,10 +13,10 @@ spec:
     requests:
       storage: 5Gi
 
+---
 # =========================
 # DEPLOYMENT
 # =========================
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -60,7 +60,7 @@ spec:
             - name: WEB_CONCURRENCY
               value: "1"
             - name: BASE_URL
-              value: http://192.168.100.14
+              value: https://meal.kacperjedynak.pl
             - name: MEALIE_ADMIN_USER
               valueFrom:
                 secretKeyRef:
@@ -100,10 +100,10 @@ spec:
           persistentVolumeClaim:
             claimName: mealie-pvc-longhorn
 
+---
 # =========================
 # SERVICE
 # =========================
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -114,5 +114,26 @@ spec:
   ports:
     - port: 80
       targetPort: 9000
-      nodePort: 30925
-  type: NodePort
+  type: ClusterIP
+
+---
+# =========================
+# INGRESS
+# =========================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mealie
+  namespace: default
+spec:
+  rules:
+  - host: meal.kacperjedynak.pl
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: mealie
+            port:
+              number: 80
