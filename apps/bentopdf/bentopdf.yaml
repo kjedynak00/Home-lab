@@ -1,182 +1,199 @@
 # =========================
-# DEPLOYMENT - bentopdf
+# PVC
+# =========================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: beszel-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# =========================
+# DEPLOYMENT
 # =========================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bentopdf
+  name: beszel
+  labels:
+    app: beszel
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: bentopdf
+      app: beszel
   template:
     metadata:
       labels:
-        app: bentopdf
+        app: beszel
     spec:
+      securityContext:
+        fsGroup: 1000
       containers:
-        - name: bentopdf
+        - name: beszel
           securityContext:
             runAsNonRoot: true
-            runAsUser: 101
-            runAsGroup: 101
+            runAsUser: 1000
+            runAsGroup: 1000
             capabilities:
               drop: ["ALL"]
             allowPrivilegeEscalation: false
-          image: ghcr.io/alam00000/bentopdf:latest
+          image: henrygd/beszel:latest
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: APP_URL
+              value: "https://beszel.kacperjedynak.pl"
+            - name: HEARTBEAT_URL
+              value: "https://hc-ping.com/1c50ee02-df44-40f6-892f-db84d343496f"
+            - name: HEARTBEAT_INTERVAL
+              value: "60"
+            - name: HEARTBEAT_METHOD
+              value: "POST"
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8090
+              protocol: TCP
           livenessProbe:
             httpGet:
               path: /
-              port: 8080
+              port: http
             initialDelaySeconds: 10
             periodSeconds: 15
-            timeoutSeconds: 3
-            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /
-              port: 8080
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 3
-          resources:
-            requests:
-              cpu: "50m"
-              memory: "128Mi"
-            limits:
-              cpu: "500m"
-              memory: "1Gi"
+          volumeMounts:
+            - mountPath: /beszel_data
+              name: data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: beszel-data
 
 ---
 # =========================
-# SERVICE - bentopdf
+# SERVICE
 # =========================
 apiVersion: v1
 kind: Service
 metadata:
-  name: bentopdf
+  name: beszel-svc
 spec:
-  type: ClusterIP
   selector:
-    app: bentopdf
+    app: beszel
   ports:
-    - port: 8080
-      targetPort: 8080
+    - port: 80
+      targetPort: 8090
+  type: ClusterIP
 
 ---
 # =========================
-# INGRESS - bentopdf
+# INGRESS
 # =========================
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: bentopdf
+  name: beszel
   namespace: default
 spec:
   rules:
-  - host: pdf.kacperjedynak.pl
+  - host: beszel.kacperjedynak.pl
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: bentopdf
+            name: beszel-svc
             port:
-              number: 8080
+              number: 80
 
-Oto cały plik bento z pdf.kacperjedynak.pl:
+---
 # =========================
-# DEPLOYMENT - bentopdf
+# AGENT (DaemonSet)
 # =========================
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  name: bentopdf
+  name: beszel-agent
 spec:
-  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 100%
   selector:
     matchLabels:
-      app: bentopdf
+      app: beszel-agent
   template:
     metadata:
       labels:
-        app: bentopdf
+        app: beszel-agent
     spec:
+      hostNetwork: true
       containers:
-        - name: bentopdf
+        - name: beszel-agent
           securityContext:
-            runAsNonRoot: true
-            runAsUser: 101
-            runAsGroup: 101
+            privileged: true
             capabilities:
-              drop: ["ALL"]
-            allowPrivilegeEscalation: false
-          image: ghcr.io/alam00000/bentopdf:latest
-          ports:
-            - containerPort: 8080
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 15
-            timeoutSeconds: 3
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 8080
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 3
+              add: ["SYS_PTRACE"]
+            allowPrivilegeEscalation: true
+          image: henrygd/beszel-agent:latest
+          imagePullPolicy: Always
           resources:
             requests:
+              memory: "64Mi"
               cpu: "50m"
-              memory: "128Mi"
             limits:
-              cpu: "500m"
-              memory: "1Gi"
-
----
-# =========================
-# SERVICE - bentopdf
-# =========================
-apiVersion: v1
-kind: Service
-metadata:
-  name: bentopdf
-spec:
-  type: ClusterIP
-  selector:
-    app: bentopdf
-  ports:
-    - port: 8080
-      targetPort: 8080
-
----
-# =========================
-# INGRESS - bentopdf
-# =========================
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: bentopdf
-  namespace: default
-spec:
-  rules:
-  - host: pdf.kacperjedynak.pl
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: bentopdf
-            port:
-              number: 8080
+              memory: "256Mi"
+              cpu: "200m"
+          env:
+            - name: HUB_URL
+              value: "https://beszel.kacperjedynak.pl"
+            - name: TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: beszel-secret
+                  key: TOKEN
+            - name: KEY
+              valueFrom:
+                secretKeyRef:
+                  name: beszel-secret
+                  key: KEY
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
