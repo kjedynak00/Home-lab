@@ -91,7 +91,7 @@ spec:
 
 ---
 # =========================
-# SERVICE (NODEPORT)
+# SERVICE
 # =========================
 apiVersion: v1
 kind: Service
@@ -103,8 +103,29 @@ spec:
   ports:
     - port: 80
       targetPort: 8090
-      nodePort: 30900
-  type: NodePort
+  type: ClusterIP
+
+---
+# =========================
+# INGRESS
+# =========================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: beszel
+  namespace: default
+spec:
+  rules:
+  - host: beszel.kacperjedynak.pl
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: beszel-svc
+            port:
+              number: 80
 
 ---
 # =========================
