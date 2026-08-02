@@ -107,7 +107,7 @@ spec:
 
 ---
 # =========================
-# SERVICE (NODEPORT)
+# SERVICE
 # =========================
 apiVersion: v1
 kind: Service
@@ -122,6 +122,27 @@ spec:
       protocol: TCP
       port: 80
       targetPort: 3000
-      nodePort: 30460
 
-  type: NodePort
+  type: ClusterIP
+
+---
+# =========================
+# INGRESS
+# =========================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: roampage
+  namespace: default
+spec:
+  rules:
+  - host: roampage.kacperjedynak.pl
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: roampage-svc
+            port:
+              number: 80
