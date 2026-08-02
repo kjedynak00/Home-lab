@@ -9,6 +9,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: longhorn
+  volumeName: pvc-6bc46bdf-cc21-4f19-83f2-08d1a0555f96
   resources:
     requests:
       storage: 5Gi
