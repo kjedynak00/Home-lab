@@ -248,3 +248,22 @@ spec:
     - port: 5678
       nodePort: 30924
   type: NodePort
+  
+# INGRESS - n8n TEST
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: n8n
+  namespace: default
+spec:
+  rules:
+  - host: n8n.kacperjedynak.pl
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: n8n
+            port:
+              number: 5678
