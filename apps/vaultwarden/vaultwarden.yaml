@@ -1,6 +1,3 @@
-# =========================
-# PV - vaultwarden
-# =========================
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -16,9 +13,6 @@ spec:
   persistentVolumeReclaimPolicy: Retain
 
 ---
-# =========================
-# PVC - vaultwarden
-# =========================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -32,10 +26,8 @@ spec:
     requests:
       storage: 5Gi
 
+# Deployment for Vaultwarden
 ---
-# =========================
-# DEPLOYMENT - vaultwarden
-# =========================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -68,6 +60,15 @@ spec:
 
             - name: INVITATIONS_ALLOWED
               value: "false"
+
+          startupProbe:
+            httpGet:
+              path: /alive
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
 
           livenessProbe:
             httpGet:
@@ -104,40 +105,17 @@ spec:
           persistentVolumeClaim:
             claimName: vaultwarden-pvc
 
+# Service to expose Vaultwarden
 ---
-# =========================
-# SERVICE - vaultwarden
-# =========================
 apiVersion: v1
 kind: Service
 metadata:
   name: vaultwarden
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: vaultwarden
   ports:
     - port: 80
       targetPort: 80
-
----
-# =========================
-# INGRESS - vaultwarden
-# =========================
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: vaultwarden
-  namespace: default
-spec:
-  rules:
-  - host: vault.kacperjedynak.pl
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: vaultwarden
-            port:
-              number: 80
+      nodePort: 30380
