@@ -52,8 +52,6 @@ spec:
       labels:
         app: vaultwarden
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: ubnt-kube-wk1
       containers:
         - name: vaultwarden
           image: vaultwarden/server:latest
