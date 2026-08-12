@@ -1,33 +1,33 @@
 # =========================
-# PV - vaultwarden
+# PV - vaultwarden (NFS)
 # =========================
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: vaultwarden-pv
+  name: vaultwarden-nfs-pv
 spec:
   capacity:
     storage: 5Gi
   accessModes:
     - ReadWriteOnce
-  storageClassName: "" 
-  hostPath:
-    path: /mnt/NAS/home-lab/data/vaultwarden
+  nfs:
+    server: 192.168.100.91
+    path: /volume1/NAS/home-lab/data/vaultwarden
   persistentVolumeReclaimPolicy: Retain
 
 ---
 # =========================
-# PVC - vaultwarden
+# PVC - vaultwarden (NFS)
 # =========================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: vaultwarden-pvc
+  name: vaultwarden-nfs-pvc
 spec:
   accessModes:
     - ReadWriteOnce
-  volumeName: vaultwarden-pv
-  storageClassName: "" 
+  volumeName: vaultwarden-nfs-pv
+  storageClassName: ""
   resources:
     requests:
       storage: 5Gi
@@ -52,6 +52,8 @@ spec:
       labels:
         app: vaultwarden
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: ubnt-kube-wk1
       containers:
         - name: vaultwarden
           image: vaultwarden/server:latest
@@ -102,7 +104,7 @@ spec:
       volumes:
         - name: vaultwarden-data
           persistentVolumeClaim:
-            claimName: vaultwarden-pvc
+            claimName: vaultwarden-nfs-pvc
 
 ---
 # =========================
