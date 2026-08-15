@@ -1,0 +1,250 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: docmost-data
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: docmost-postgres
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docmost-postgres
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docmost-postgres
+  template:
+    metadata:
+      labels:
+        app: docmost-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: docmost-secret
+                  key: postgres-db
+
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: docmost-secret
+                  key: postgres-user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: docmost-secret
+                  key: postgres-password
+
+          ports:
+            - name: postgres
+              containerPort: 5432
+
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: docmost-postgres
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: docmost-postgres
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: docmost-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docmost-redis
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docmost-redis
+  template:
+    metadata:
+      labels:
+        app: docmost-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: redis
+              containerPort: 6379
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: docmost-redis
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: docmost-redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docmost
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docmost
+  template:
+    metadata:
+      labels:
+        app: docmost
+    spec:
+      containers:
+        - name: docmost
+          image: docmost/docmost:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: http
+              containerPort: 3000
+
+          env:
+            - name: APP_URL
+              value: "https://docs.kacperjedynak.pl"
+
+            - name: APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: docmost-secret
+                  key: app-secret
+
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: docmost-secret
+                  key: database-url
+
+            - name: REDIS_URL
+              value: "redis://docmost-redis:6379"
+
+          volumeMounts:
+            - name: docmost-data
+              mountPath: /app/data
+
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+
+      volumes:
+        - name: docmost-data
+          persistentVolumeClaim:
+            claimName: docmost-data
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: docmost
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: docmost
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: docmost
+  namespace: default
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: docs.kacperjedynak.pl
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: docmost
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - docs.kacperjedynak.pl
