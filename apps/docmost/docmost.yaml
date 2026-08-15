@@ -1,4 +1,38 @@
 # =========================
+# PVC - docmost-data (Longhorn)
+# =========================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: docmost-data
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# =========================
+# PVC - docmost-postgres (Longhorn)
+# =========================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: docmost-postgres
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# =========================
 # DEPLOYMENT - docmost-postgres
 # =========================
 apiVersion: apps/v1
