@@ -1,78 +1,276 @@
 # =========================
-# PV - vaultwarden (NFS)
-# =========================
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: vaultwarden-nfs-pv
-spec:
-  capacity:
-    storage: 5Gi
-  accessModes:
-    - ReadWriteOnce
-  nfs:
-    server: 192.168.100.91
-    path: /volume1/NAS/home-lab/data/vaultwarden
-  persistentVolumeReclaimPolicy: Retain
-
----
-# =========================
-# PVC - vaultwarden (NFS)
+# PVC - docmost-data (Longhorn)
 # =========================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: vaultwarden-nfs-pvc
+  name: docmost-data
+  namespace: default
 spec:
   accessModes:
     - ReadWriteOnce
-  volumeName: vaultwarden-nfs-pv
-  storageClassName: ""
+  storageClassName: longhorn
   resources:
     requests:
-      storage: 5Gi
+      storage: 10Gi
 
 ---
 # =========================
-# DEPLOYMENT - vaultwarden
+# PVC - docmost-postgres (Longhorn)
+# =========================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: docmost-postgres
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# =========================
+# SECRET - docmost
+# NOT COMMITTED. Apply separately: kubectl apply -f docmost-secret.yaml
+# =========================
+---
+# =========================
+# DEPLOYMENT - docmost-postgres
 # =========================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vaultwarden
+  name: docmost-postgres
+  namespace: default
 spec:
   replicas: 1
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
-      app: vaultwarden
+      app: docmost-postgres
   template:
     metadata:
       labels:
-        app: vaultwarden
+        app: docmost-postgres
     spec:
       containers:
-        - name: vaultwarden
-          image: vaultwarden/server:latest
-          imagePullPolicy: Always # autoupdate to latest version
+        - name: postgres
+          image: postgres:16
+          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80
+            - name: postgres
+              containerPort: 5432
 
           env:
-            - name: TZ
-              value: Europe/Warsaw
+            - name: PGDATA # mount point contains lost+found from Longhorn
+              value: /var/lib/postgresql/data/pgdata
 
-            - name: SIGNUPS_ALLOWED
-              value: "false"
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: docmost-secret
+                  key: postgres-db
 
-            - name: INVITATIONS_ALLOWED
-              value: "false"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: docmost-secret
+                  key: postgres-user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: docmost-secret
+                  key: postgres-password
+
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - docmost
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - docmost
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: docmost-postgres
+
+---
+# =========================
+# SERVICE - docmost-postgres
+# =========================
+apiVersion: v1
+kind: Service
+metadata:
+  name: docmost-postgres
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: docmost-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+
+---
+# =========================
+# DEPLOYMENT - docmost-redis
+# =========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docmost-redis
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docmost-redis
+  template:
+    metadata:
+      labels:
+        app: docmost-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: redis
+              containerPort: 6379
+
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+
+---
+# =========================
+# SERVICE - docmost-redis
+# =========================
+apiVersion: v1
+kind: Service
+metadata:
+  name: docmost-redis
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: docmost-redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+
+---
+# =========================
+# DEPLOYMENT - docmost
+# =========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docmost
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docmost
+  template:
+    metadata:
+      labels:
+        app: docmost
+    spec:
+      containers:
+        - name: docmost
+          image: docmost/docmost:latest
+          imagePullPolicy: IfNotPresent # autoupdate to latest version
+          ports:
+            - name: http
+              containerPort: 3000
+
+          env:
+            - name: APP_URL
+              valueFrom:
+                secretKeyRef:
+                  name: docmost-secret
+                  key: app-url
+
+            - name: APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: docmost-secret
+                  key: app-secret
+
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: docmost-secret
+                  key: database-url
+
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: docmost-secret
+                  key: redis-url
 
           livenessProbe:
             httpGet:
-              path: /alive
-              port: 80
+              path: /api/health
+              port: 3000
             initialDelaySeconds: 30
             periodSeconds: 15
             timeoutSeconds: 5
@@ -80,8 +278,8 @@ spec:
 
           readinessProbe:
             httpGet:
-              path: /alive
-              port: 80
+              path: /api/health
+              port: 3000
             initialDelaySeconds: 15
             periodSeconds: 10
             timeoutSeconds: 3
@@ -89,55 +287,64 @@ spec:
 
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "50m"
+              cpu: 250m
+              memory: 512Mi
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              cpu: 1
+              memory: 1Gi
 
           volumeMounts:
-            - name: vaultwarden-data
-              mountPath: /data
+            - name: docmost-data
+              mountPath: /app/data
 
       volumes:
-        - name: vaultwarden-data
+        - name: docmost-data
           persistentVolumeClaim:
-            claimName: vaultwarden-nfs-pvc
+            claimName: docmost-data
 
 ---
 # =========================
-# SERVICE - vaultwarden
+# SERVICE - docmost
 # =========================
 apiVersion: v1
 kind: Service
 metadata:
-  name: vaultwarden
+  name: docmost
+  namespace: default
 spec:
   type: ClusterIP
   selector:
-    app: vaultwarden
+    app: docmost
   ports:
-    - port: 80
-      targetPort: 80
+    - name: http
+      port: 3000
+      targetPort: 3000
 
 ---
 # =========================
-# INGRESS - vaultwarden
+# INGRESS - docmost
 # =========================
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: vaultwarden
+  name: docmost
   namespace: default
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
+  ingressClassName: traefik
   rules:
-  - host: vault.kacperjedynak.pl
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: vaultwarden
-            port:
-              number: 80
+    - host: docs.kacperjedynak.pl
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: docmost
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - docs.kacperjedynak.pl
