@@ -1,0 +1,116 @@
+# =========================
+# LONGHORN - daily backup of all volumes to the NAS
+# (backup target set in Longhorn: nfs://192.168.100.91:/volume1/NAS/home-lab/data/backups)
+# =========================
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: daily-backup
+  namespace: longhorn-system
+spec:
+  name: daily-backup
+  task: backup
+  cron: "0 3 * * *"
+  # the "default" group covers every volume without its own recurring jobs
+  groups:
+    - default
+  retain: 7
+  concurrency: 2
+  labels: {}
+
+---
+# =========================
+# POSTGRES - nightly pg_dump of Firefly, n8n and Docmost to the NAS (kept 14 days)
+# =========================
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: default
+spec:
+  schedule: "30 3 * * *"
+  timeZone: Europe/Warsaw
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: pg-dump
+              image: postgres:16-alpine
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu -o pipefail
+                  DIR="/backups/postgres/$(date +%F)"
+                  mkdir -p "$DIR"
+
+                  # dump to a temp file first so a failed run never overwrites a good backup
+                  dump() {
+                    PGPASSWORD="$5" pg_dump -h "$2" -U "$3" -d "$4" --no-owner | gzip > "$DIR/$1.sql.gz.tmp"
+                    mv "$DIR/$1.sql.gz.tmp" "$DIR/$1.sql.gz"
+                    echo "OK $1 $(du -h "$DIR/$1.sql.gz" | cut -f1)"
+                  }
+
+                  dump firefly firefly-postgres-svc firefly firefly "$FIREFLY_PASSWORD"
+                  dump n8n n8n-postgres "$N8N_USER" "$N8N_DB" "$N8N_PASSWORD"
+                  dump docmost docmost-postgres "$DOCMOST_USER" "$DOCMOST_DB" "$DOCMOST_PASSWORD"
+
+                  # remove dumps older than 14 days
+                  find /backups/postgres -mindepth 1 -maxdepth 1 -type d -mtime +14 -exec rm -rf {} +
+              env:
+                - name: FIREFLY_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: firefly-secret
+                      key: DB_PASSWORD
+                - name: N8N_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: n8n-secrets
+                      key: POSTGRES_USER
+                - name: N8N_DB
+                  valueFrom:
+                    secretKeyRef:
+                      name: n8n-secrets
+                      key: POSTGRES_DB
+                - name: N8N_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: n8n-secrets
+                      key: POSTGRES_PASSWORD
+                - name: DOCMOST_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: docmost-secret
+                      key: postgres-user
+                - name: DOCMOST_DB
+                  valueFrom:
+                    secretKeyRef:
+                      name: docmost-secret
+                      key: postgres-db
+                - name: DOCMOST_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: docmost-secret
+                      key: postgres-password
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "50m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "500m"
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+          volumes:
+            - name: backups
+              nfs:
+                server: 192.168.100.91
+                path: /volume1/NAS/home-lab/data/backups
