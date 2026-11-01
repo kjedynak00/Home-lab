@@ -136,7 +136,7 @@ metadata:
   namespace: default
 spec:
   rules:
-  - host: roampage.kacperjedynak.pl
+  - host: home.kacperjedynak.pl
     http:
       paths:
       - path: /
