@@ -51,7 +51,8 @@ Name | What it is doing | Status |
 ---
 ## 🤖 Automation
 - **Discord → Firefly III bot (n8n)** – add expenses straight from a Discord channel (`12,50 transport taxi`), with category validation and error replies
-- **Bot commands** – `!ile` (spending this month), `!kategorie` (available categories), `!cofnij` (undo the last expense added by the bot), `!help`
+- **Bot commands** – `!wyplata` (add salary as income), `!ile` (spending this month), `!ostatnie` (latest transactions), `!kategorie` (available categories), `!cofnij` (undo the last expense added by the bot), `!help`
+- **Weekly summary** – every Sunday at 20:00: spending since Monday, daily average, top categories and a comparison with the previous week
 - **Monthly summary** – on the 1st of every month: spending per category compared with the previous month, sent to Discord
 - **Heartbeat monitoring** – Beszel pings healthchecks.io, so an outage of the monitoring itself is also noticed
 
