@@ -231,8 +231,8 @@ spec:
     spec:
       containers:
         - name: docmost
-          image: docmost/docmost:latest
-          imagePullPolicy: IfNotPresent # autoupdate to latest version
+          image: docmost/docmost:0.95.0 # pinned; to upgrade, change the tag here (back up Postgres first)
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 3000
