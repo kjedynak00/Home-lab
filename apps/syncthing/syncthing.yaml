@@ -1,18 +1,53 @@
 # =========================
-# PVC
+# PVC - CONFIGURATION (LONGHORN)
 # =========================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: syncthing-pvc-longhorn
+ name: syncthing-pvc-longhorn
 spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: longhorn
-  resources:
-    requests:
-      storage: 10Gi
-
+ accessModes:
+   - ReadWriteOnce
+ storageClassName: longhorn
+ resources:
+   requests:
+     storage: 10Gi
+---
+# =========================
+# PV - SYNOLOGY NAS (NFS)
+# =========================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+ name: syncthing-nfs-pv
+spec:
+ capacity:
+   storage: 1Ti
+ accessModes:
+   - ReadWriteMany
+ persistentVolumeReclaimPolicy: Retain
+ storageClassName: ""
+ mountOptions:
+   - nfsvers=4.1
+ nfs:
+   server: 192.168.100.91
+   path: /volume1/NAS/syncthing
+---
+# =========================
+# PVC - SYNOLOGY NAS
+# =========================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+ name: syncthing-pvc-nfs
+spec:
+ accessModes:
+   - ReadWriteMany
+ storageClassName: ""
+ volumeName: syncthing-nfs-pv
+ resources:
+   requests:
+     storage: 1Ti
 ---
 # =========================
 # DEPLOYMENT
@@ -20,103 +55,92 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: syncthing
+ name: syncthing
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: syncthing
-  template:
-    metadata:
-      labels:
-        app: syncthing
-
-    spec:
-      # Syncthing lepiej działa z bezpośrednim dostępem
-      # do sieci noda
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
-
-      securityContext:
-        fsGroup: 1000
-
-      containers:
-        - name: syncthing
-          image: syncthing/syncthing:latest
-
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 1000
-            runAsGroup: 1000
-            capabilities:
-              drop:
-                - ALL
-            allowPrivilegeEscalation: false
-
-          env:
-            - name: PUID
-              value: "1000"
-
-            - name: PGID
-              value: "1000"
-
-            - name: TZ
-              value: Europe/Warsaw
-
-          ports:
-            # GUI
-            - name: gui
-              containerPort: 8384
-              protocol: TCP
-
-            # Syncthing synchronization
-            - name: sync-tcp
-              containerPort: 22000
-              protocol: TCP
-
-            - name: sync-udp
-              containerPort: 22000
-              protocol: UDP
-
-            # Local discovery
-            - name: discovery
-              containerPort: 21027
-              protocol: UDP
-
-          livenessProbe:
-            tcpSocket:
-              port: 8384
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
-
-          readinessProbe:
-            tcpSocket:
-              port: 8384
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 3
-
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "100m"
-
-            limits:
-              memory: "1Gi"
-              cpu: "500m"
-
-          volumeMounts:
-            - name: syncthing-data
-              mountPath: /var/syncthing
-
-      volumes:
-        - name: syncthing-data
-          persistentVolumeClaim:
-            claimName: syncthing-pvc-longhorn
-
+ replicas: 1
+ strategy:
+   type: Recreate
+ selector:
+   matchLabels:
+     app: syncthing
+ template:
+   metadata:
+     labels:
+       app: syncthing
+   spec:
+     hostNetwork: true
+     dnsPolicy: ClusterFirstWithHostNet
+     securityContext:
+       fsGroup: 1000
+     containers:
+       - name: syncthing
+         image: syncthing/syncthing:latest
+         securityContext:
+           runAsNonRoot: true
+           runAsUser: 1000
+           runAsGroup: 1000
+           capabilities:
+             drop:
+               - ALL
+           allowPrivilegeEscalation: false
+         env:
+           - name: PUID
+             value: "1000"
+           - name: PGID
+             value: "1000"
+           - name: TZ
+             value: Europe/Warsaw
+         ports:
+           # GUI
+           - name: gui
+             containerPort: 8384
+             protocol: TCP
+           # Synchronization
+           - name: sync-tcp
+             containerPort: 22000
+             protocol: TCP
+           - name: sync-udp
+             containerPort: 22000
+             protocol: UDP
+           # Local discovery
+           - name: discovery
+             containerPort: 21027
+             protocol: UDP
+         livenessProbe:
+           tcpSocket:
+             port: 8384
+           initialDelaySeconds: 30
+           periodSeconds: 30
+           timeoutSeconds: 5
+           failureThreshold: 3
+         readinessProbe:
+           tcpSocket:
+             port: 8384
+           initialDelaySeconds: 15
+           periodSeconds: 10
+           timeoutSeconds: 3
+           failureThreshold: 3
+         resources:
+           requests:
+             memory: "256Mi"
+             cpu: "100m"
+           limits:
+             memory: "1Gi"
+             cpu: "500m"
+         volumeMounts:
+           # Syncthing configuration and database
+           - name: syncthing-config
+             mountPath: /var/syncthing
+           # Synced files stored on Synology NAS
+           - name: syncthing-data
+             mountPath: /data
+     volumes:
+       - name: syncthing-config
+         persistentVolumeClaim:
+           claimName: syncthing-pvc-longhorn
+       - name: syncthing-data
+         persistentVolumeClaim:
+           claimName: syncthing-pvc-nfs
 ---
 # =========================
 # SERVICE - GUI
@@ -124,19 +148,16 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: syncthing
+ name: syncthing
 spec:
-  selector:
-    app: syncthing
-
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8384
-      protocol: TCP
-
-  type: ClusterIP
-
+ selector:
+   app: syncthing
+ ports:
+   - name: http
+     port: 80
+     targetPort: 8384
+     protocol: TCP
+ type: ClusterIP
 ---
 # =========================
 # INGRESS - TRAEFIK
@@ -144,17 +165,16 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: syncthing
-  namespace: default
+ name: syncthing
+ namespace: default
 spec:
-  rules:
-    - host: sync.kacperjedynak.pl
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: syncthing
-                port:
-                  number: 80
+ rules:
+   - host: sync.kacperjedynak.pl
+     http:
+       paths:
+         - path: /
+           pathType: Prefix
+           backend:
+             service:
+               name: syncthing
+               port:
