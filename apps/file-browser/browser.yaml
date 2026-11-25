@@ -46,9 +46,9 @@ spec:
            - --port
            - "8080"
            - --root
-           - /data/files
+           - /srv
            - --database
-           - /data/database/filebrowser.db
+           - /database/filebrowser.db
 
          securityContext:
            runAsNonRoot: true
@@ -92,7 +92,12 @@ spec:
 
          volumeMounts:
            - name: filebrowser-storage
-             mountPath: /data
+             mountPath: /srv
+             subPath: files
+
+           - name: filebrowser-storage
+             mountPath: /database
+             subPath: database
 
      volumes:
        - name: filebrowser-storage
