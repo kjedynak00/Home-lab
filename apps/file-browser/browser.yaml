@@ -1,19 +1,17 @@
 # =========================
-# PVC - LONGHORN
+# PVC - LOCAL STORAGE
 # =========================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: filebrowser-pvc-longhorn
-  annotations:
-    longhorn.io/numberOfReplicas: "1"
+ name: filebrowser-pvc-local
 spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: longhorn
-  resources:
-    requests:
-      storage: 60Gi
+ accessModes:
+   - ReadWriteOnce
+ storageClassName: local-path
+ resources:
+   requests:
+     storage: 60Gi
 
 ---
 # =========================
@@ -48,9 +46,9 @@ spec:
            - --port
            - "8080"
            - --root
-           - /srv
+           - /data/files
            - --database
-           - /database/filebrowser.db
+           - /data/database/filebrowser.db
 
          securityContext:
            runAsNonRoot: true
@@ -94,17 +92,12 @@ spec:
 
          volumeMounts:
            - name: filebrowser-storage
-             mountPath: /srv
-             subPath: files
-
-           - name: filebrowser-storage
-             mountPath: /database
-             subPath: database
+             mountPath: /data
 
      volumes:
        - name: filebrowser-storage
          persistentVolumeClaim:
-           claimName: filebrowser-pvc-longhorn
+           claimName: filebrowser-pvc-local
 
 ---
 # =========================
@@ -120,6 +113,7 @@ spec:
  ports:
    - port: 80
      targetPort: 8080
+     protocol: TCP
  type: ClusterIP
 
 ---
