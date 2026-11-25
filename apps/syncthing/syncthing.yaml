@@ -68,8 +68,6 @@ spec:
       labels:
         app: syncthing
     spec:
-      # Keep the GUI reachable through the Service/Ingress only.
-      # Sync/discovery ports are exposed on the node separately below.
       securityContext:
         fsGroup: 1000
       containers:
@@ -91,12 +89,9 @@ spec:
             - name: TZ
               value: Europe/Warsaw
           ports:
-            # GUI: available through the ClusterIP Service and Ingress,
-            # not directly on the node.
             - name: gui
               containerPort: 8384
               protocol: TCP
-            # Syncthing synchronization on the node.
             - name: sync-tcp
               containerPort: 22000
               hostPort: 22000
@@ -105,7 +100,6 @@ spec:
               containerPort: 22000
               hostPort: 22000
               protocol: UDP
-            # Local discovery on the node.
             - name: discovery
               containerPort: 21027
               hostPort: 21027
@@ -132,11 +126,8 @@ spec:
               memory: "1Gi"
               cpu: "500m"
           volumeMounts:
-            # Configuration and database - Longhorn
             - name: syncthing-config
               mountPath: /var/syncthing
-            # Synced files - Synology NAS; the PV already points to this folder,
-            # so do not add a subPath here.
             - name: syncthing-data
               mountPath: /data
       volumes:
