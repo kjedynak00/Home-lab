@@ -27,10 +27,11 @@ spec:
    - ReadWriteMany
  persistentVolumeReclaimPolicy: Retain
  storageClassName: ""
+ mountOptions:
+   - nfsvers=3
  nfs:
    server: 192.168.100.91
-   path: /volume1/NAS
----
+   path: /volume1/NAS/syncthing
 # =========================
 # PVC - SYNOLOGY NAS
 # =========================
