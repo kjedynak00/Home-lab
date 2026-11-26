@@ -46,7 +46,8 @@ Name | What it is doing | Status |
 | **Wordpress + mariadb + phpmyadmin** | CMS with database stack | ⚪ Inactive |
 | **Ollama + open web UI** | Local AI stack with web interface | ⚪ Inactive |
 | **qBittorrent** | Torrent client with web UI | ⚪ Inactive |
-| **Syncthing** | Continuous file synchronization | ⚪ Inactive |
+| **Syncthing** | Continuous file synchronization | ⚪ Testing |
+| **File Browser** | Web file manager for files stored on the NAS | ⚪ Testing |
 
 ---
 ## 🤖 Automation

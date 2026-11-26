@@ -76,16 +76,12 @@ spec:
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
-            runAsGroup: 1000
+            runAsGroup: 100 # uid 1000 / gid 100 = "kacper:users" on the NAS
             capabilities:
               drop:
                 - ALL
             allowPrivilegeEscalation: false
           env:
-            - name: PUID
-              value: "1000"
-            - name: PGID
-              value: "1000"
             - name: TZ
               value: Europe/Warsaw
           ports:
